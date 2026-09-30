@@ -133,6 +133,11 @@ Para mudar, acrescente uma destas opções depois de `python main.py`:
 
 Dá para juntar opções. Exemplo: `python main.py --teste --refazer`.
 
+**Quer mudar o padrão de vez?** Abra o arquivo **`.env`** (na pasta do programa) com o Bloco de Notas e
+troque o número em `ULTIMOS_ANOS=2`. Esse arquivo é opcional: sem ele, o programa usa 2 anos.
+(Se ele não existir, copie o `.env.example` e renomeie a cópia para `.env`.)
+**Não coloque CPF nem senha nele**: o login é sempre feito por você, no site.
+
 ---
 
 ## Rodar de novo outro dia

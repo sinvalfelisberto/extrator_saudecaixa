@@ -44,7 +44,7 @@ SITE = os.environ.get("SITE", "https://atendimentosaude.caixa.gov.br/").strip()
 PERFIL = BASE / ".browser_profile"  # mantém a sessão entre execuções
 SAIDA = BASE / "extratos"
 ESPERA_LOGIN_MIN = 10
-ULTIMOS_ANOS = 2  # quantos anos (do mais recente para trás) extrair por padrão
+ULTIMOS_ANOS = int(os.environ.get("ULTIMOS_ANOS") or 2)  # anos (do mais recente para trás) extraídos por padrão
 
 
 def aguardar_login(page) -> None:
