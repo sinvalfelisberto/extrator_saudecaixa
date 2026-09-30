@@ -117,6 +117,29 @@ Exemplo de uma linha (só as últimas colunas):
 
 ---
 
+## Ver os extratos na tela 👀 (visualizador)
+
+Em vez de abrir arquivo por arquivo no Excel, você pode ver tudo numa página simples, com filtros.
+
+1. Na janela preta (mesma do Passo 2), digite e aperte **Enter**:
+
+   ```
+   python visualizar.py
+   ```
+
+2. O navegador abre uma página com:
+   - **Filtros** de beneficiário, ano e mês;
+   - **Cartões** com a mensalidade, a coparticipação, o total do mês e o total recebido pelos prestadores;
+   - A lista de **atendimentos**: clique em um para ver todos os procedimentos dele (ou use
+     **Expandir tudo**);
+   - Uma **busca** por nome do prestador, CNPJ ou procedimento (ex.: "ferritina").
+
+A página usa os arquivos da pasta `extratos`. Sempre que o `python main.py` termina, ele já atualiza
+os dados dela; se você só apagou ou adicionou CSVs na mão, rode `python visualizar.py` de novo.
+Também dá para abrir direto o arquivo `visualizador/index.html` com dois cliques.
+
+---
+
 ## Opções (só se você quiser mudar o padrão)
 
 Por padrão, `python main.py` baixa os **2 anos mais recentes**, todos os meses e todas as pessoas.
@@ -175,7 +198,8 @@ nem guarda sua senha**: quem digita é você, direto no site.
 **Posso usar o computador enquanto roda?** Pode, mas **não feche nem mexa** na janela do navegador
 que ele abriu.
 
-**Onde ficam os arquivos?** Na pasta `extratos`, dentro da pasta do programa.
+**Onde ficam os arquivos?** Na pasta `extratos`, dentro da pasta do programa. A tela de visualização
+fica na pasta `visualizador`.
 
 **Por que o Excel mostra tudo numa coluna só?** Os arquivos usam **ponto e vírgula (`;`)** para separar as
 colunas, que é o padrão do Excel em português. Se abrir tudo junto, use *Dados → Texto para Colunas*

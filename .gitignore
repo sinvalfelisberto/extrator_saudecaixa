@@ -8,6 +8,9 @@
 extratos/*
 !extratos/.gitkeep
 
+# Dados do visualizador (gerados a partir dos CSVs; contêm dados pessoais)
+visualizador/dados.js
+
 # Capturas de tela de apoio (mostram dados pessoais)
 step_by_step/
 

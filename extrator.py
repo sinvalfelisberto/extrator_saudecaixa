@@ -83,15 +83,26 @@ def selecionar_ano(page, ano: str) -> None:
     page.wait_for_selector(".containerLancamentoItem")
 
 
-def abrir_mes(page, item) -> None:
-    benef = page.locator("p-dropdown.custom-border").first
-    item.click()
-    try:
-        benef.wait_for(state="visible", timeout=5000)
-    except Exception:  # clique no texto não abriu; tenta na seta à direita
-        box = item.bounding_box()
-        item.click(position={"x": box["width"] - 10, "y": box["height"] / 2})
-        benef.wait_for(state="visible", timeout=15000)
+def abrir_mes(page, item, nome_mes: str, ano: str) -> None:
+    """Abre o mês e só retorna quando o painel da direita mostra 'Mês Ano' (ex.: 'Maio 2026').
+
+    O clique só abre o painel na seta à direita do item. Sem conferir o título, um clique que não
+    funcionou deixaria na tela o mês anterior, e o CSV sairia com os dados do mês errado.
+    """
+    titulo = page.get_by_text(f"{nome_mes} {ano}", exact=True).first
+    caixa = item.bounding_box()
+    tentativas = [{"x": caixa["width"] - 18, "y": caixa["height"] / 2},  # seta
+                  {"x": caixa["width"] / 2, "y": caixa["height"] / 2}]  # centro (reserva)
+    for posicao in tentativas:
+        item.click(position=posicao)
+        try:
+            titulo.wait_for(state="visible", timeout=5000)
+            break
+        except Exception:
+            continue
+    else:
+        raise RuntimeError(f"Não consegui abrir {nome_mes}/{ano}: o painel não mostrou o mês.")
+    page.locator("p-dropdown.custom-border").first.wait_for(state="visible", timeout=15000)
     aguardar(page)
 
 
@@ -157,7 +168,7 @@ def extrair_tudo(page, destino: Path, refazer: bool = False,
             mes = MESES[nome_mes]
             if mes_filtro and mes != mes_filtro:
                 continue
-            abrir_mes(page, itens.nth(i))
+            abrir_mes(page, itens.nth(i), nome_mes, ano)
             benef_dd = page.locator("p-dropdown.custom-border").first
             for benef in opcoes(benef_dd):
                 arq = destino / f"{slug(benef)}_{ano}_{mes:02d}.csv"
@@ -165,6 +176,8 @@ def extrair_tudo(page, destino: Path, refazer: bool = False,
                     print("já existe, pulando:", arq.name)
                     continue
                 escolher(page, benef_dd, benef)
+                # Garante que o beneficiário escolhido é o que está na tela antes de ler.
+                benef_dd.locator("label.ui-dropdown-label").filter(has_text=benef).wait_for(timeout=15000)
                 page.get_by_text("Detalhes do Lançamento").first.wait_for(timeout=30000)
                 rows = linhas(benef, ano, mes, page.evaluate(JS_EXTRAIR))
                 gravar(arq, rows)

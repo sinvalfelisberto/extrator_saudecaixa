@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Extratos Saúde CAIXA</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topo">
+    <h1>Extratos Saúde CAIXA</h1>
+    <p id="resumo-geral"></p>
+  </header>
+
+  <main>
+    <section class="filtros" aria-label="Filtros">
+      <label>Beneficiário
+        <select id="f-beneficiario"></select>
+      </label>
+      <label>Ano
+        <select id="f-ano"></select>
+      </label>
+      <label>Mês
+        <select id="f-mes"></select>
+      </label>
+      <label class="busca">Buscar
+        <input id="f-busca" type="search" placeholder="Prestador, CNPJ ou procedimento...">
+      </label>
+    </section>
+
+    <section id="vazio" class="vazio" hidden>
+      <h2>Nenhum extrato encontrado</h2>
+      <p>Rode <code>python main.py</code> para baixar os extratos e depois
+         <code>python visualizar.py</code> para atualizar esta tela.</p>
+    </section>
+
+    <div id="conteudo">
+      <section class="cards" aria-label="Totais do mês">
+        <article class="card"><span>Mensalidade</span><strong id="c-mensalidade"></strong></article>
+        <article class="card"><span>Coparticipação (mês)</span><strong id="c-copart"></strong></article>
+        <article class="card destaque"><span>Total do mês</span><strong id="c-total"></strong></article>
+        <article class="card"><span>Atendimentos</span><strong id="c-atend"></strong></article>
+        <article class="card"><span>Recebido pelos prestadores</span><strong id="c-recebido"></strong></article>
+      </section>
+
+      <div class="acoes">
+        <h2>Atendimentos</h2>
+        <div>
+          <button id="b-expandir" type="button">Expandir tudo</button>
+          <button id="b-recolher" type="button">Recolher tudo</button>
+        </div>
+      </div>
+
+      <div id="lista"></div>
+      <p id="sem-resultado" class="vazio" hidden>Nada encontrado para essa busca.</p>
+    </div>
+  </main>
+
+  <script src="dados.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

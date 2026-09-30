@@ -1,0 +1,73 @@
+:root {
+  --azul: #005ca9;
+  --laranja: #f39200;
+  --fundo: #f3f6fa;
+  --cartao: #ffffff;
+  --texto: #1f2a37;
+  --suave: #667085;
+  --borda: #dde3ec;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --fundo: #0f1720; --cartao: #182330; --texto: #e6edf5; --suave: #98a6b8; --borda: #2a3a4d; --azul: #5aa9f0; }
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, "Segoe UI", Roboto, sans-serif; background: var(--fundo); color: var(--texto); line-height: 1.4; }
+[hidden] { display: none !important; }
+
+.topo { background: linear-gradient(90deg, #005ca9, #4fb3a9); color: #fff; padding: 20px 24px; }
+.topo h1 { margin: 0; font-size: 1.4rem; }
+.topo p { margin: 4px 0 0; opacity: .9; font-size: .9rem; }
+
+main { max-width: 1000px; margin: 0 auto; padding: 20px 16px 48px; }
+
+.filtros { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.filtros label { display: flex; flex-direction: column; gap: 4px; font-size: .8rem; font-weight: 600; color: var(--suave); }
+.filtros .busca { grid-column: 1 / -1; }
+select, input[type=search] {
+  font: inherit; font-weight: 400; padding: 10px 12px; color: var(--texto);
+  background: var(--cartao); border: 1px solid var(--borda); border-radius: 8px;
+}
+select:focus, input:focus, button:focus-visible, summary:focus-visible { outline: 2px solid var(--azul); outline-offset: 1px; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.card { background: var(--cartao); border: 1px solid var(--borda); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+.card span { font-size: .78rem; color: var(--suave); }
+.card strong { font-size: 1.25rem; }
+.card.destaque { border-color: var(--laranja); border-left-width: 5px; }
+
+.acoes { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+.acoes h2 { margin: 0; font-size: 1.05rem; border-left: 4px solid var(--laranja); padding-left: 10px; }
+button { font: inherit; font-size: .85rem; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--borda); background: var(--cartao); color: var(--texto); cursor: pointer; }
+button:hover { border-color: var(--azul); color: var(--azul); }
+
+.grupo { background: var(--cartao); border: 1px solid var(--borda); border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
+.grupo summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px; cursor: pointer; list-style: none; flex-wrap: wrap; }
+.grupo summary::-webkit-details-marker { display: none; }
+.grupo summary::before { content: "▸"; color: var(--azul); margin-right: 4px; transition: transform .15s; }
+.grupo[open] summary::before { transform: rotate(90deg); }
+.grupo-info { display: flex; flex-direction: column; flex: 1 1 260px; min-width: 0; }
+.grupo-info .sub { font-size: .8rem; color: var(--suave); }
+.grupo-valores { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: .85rem; }
+.chip { background: var(--fundo); border: 1px solid var(--borda); border-radius: 999px; padding: 2px 10px; font-size: .75rem; color: var(--suave); }
+.valor.forte { font-weight: 700; color: var(--azul); }
+
+.tabela-wrap { overflow-x: auto; border-top: 1px solid var(--borda); }
+table { width: 100%; border-collapse: collapse; font-size: .88rem; table-layout: fixed; }
+th:nth-child(1) { width: 110px; }
+th:nth-child(3) { width: 130px; }
+th:nth-child(4) { width: 190px; }
+th, td { padding: 8px 16px; text-align: left; border-bottom: 1px solid var(--borda); }
+th { font-size: .72rem; text-transform: uppercase; letter-spacing: .03em; color: var(--suave); }
+tbody tr:last-child td { border-bottom: 0; }
+.num { text-align: right; white-space: nowrap; }
+
+.vazio { text-align: center; color: var(--suave); padding: 32px 16px; background: var(--cartao); border: 1px dashed var(--borda); border-radius: 12px; }
+code { background: var(--fundo); padding: 2px 6px; border-radius: 4px; }
+
+@media (max-width: 640px) {
+  .filtros { grid-template-columns: 1fr 1fr; }
+  .filtros label:first-child { grid-column: 1 / -1; }
+  th, td { padding: 8px 10px; }
+  table { table-layout: auto; }
+}
