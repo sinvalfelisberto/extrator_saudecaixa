@@ -1,7 +1,8 @@
 """Extrator do demonstrativo Saúde CAIXA.
 
-Uso:  python main.py [--refazer]
-Lê CPF/SENHA do arquivo .env, faz login, e grava um CSV por beneficiário/ano/mês em ./extratos
+Uso:  python main.py [--refazer] [--teste] [--ano 2026] [--mes 9] [--anos N | --todos]
+Por padrão extrai os 2 anos mais recentes (ULTIMOS_ANOS).
+Abre o site, espera você fazer o login na janela e grava um CSV por beneficiário/ano/mês em ./extratos
 (NOME_BENEFICIARIO_ANO_MES.csv).
 """
 import subprocess
@@ -38,54 +39,26 @@ from extrator import extrair_tudo  # noqa: E402
 load_dotenv(BASE / ".env")
 
 
-def config(chave: str) -> str:
-    valor = os.environ.get(chave, "").strip()
-    if not valor:
-        sys.exit(f"Variável {chave} ausente no .env (veja .env.example).")
-    return valor
-
-
-SITE = config("SITE")
-CPF = config("CPF")
-SENHA = config("SENHA")
-PAGINA_DEMONSTRATIVO = config("PAGINA_DEMOSTRATIVO")  # grafia igual à do .env
+SITE = os.environ.get("SITE", "https://atendimentosaude.caixa.gov.br/").strip()
 
 PERFIL = BASE / ".browser_profile"  # mantém a sessão entre execuções
 SAIDA = BASE / "extratos"
+ESPERA_LOGIN_MIN = 10
+ULTIMOS_ANOS = 2  # quantos anos (do mais recente para trás) extrair por padrão
 
 
-def bloqueado(page) -> bool:
-    return "perfdrive.com" in page.url
-
-
-def login(page) -> None:
+def aguardar_login(page) -> None:
+    """Abre o site e espera a PESSOA logar e abrir a página do extrato financeiro."""
     page.goto(SITE)
-    page.wait_for_load_state("domcontentloaded")
-
-    if bloqueado(page):
-        input("Bloqueio anti-bot da Caixa detectado. Resolva na janela e tecle ENTER...")
-
+    print("\n>>> 1) Faça o login na janela do navegador que abriu.")
+    print(">>> 2) Depois, abra a página do Extrato Financeiro (Meus Dados > Financeiro > Extrato).")
+    print(f">>> O programa continua sozinho quando a página abrir (espera até {ESPERA_LOGIN_MIN} min).\n")
     try:
-        page.wait_for_selector("#username, .containerLancamentoItem, text=Saúde CAIXA", timeout=30000)
+        # A lista de meses (Lançamentos) só existe na página do extrato, já logado.
+        page.locator(".containerLancamentoItem").first.wait_for(timeout=ESPERA_LOGIN_MIN * 60 * 1000)
     except PWTimeout:
-        sys.exit(f"Tela inesperada: {page.url}")
-    if page.query_selector("#username") is None:  # sessão anterior ainda válida
-        return
-
-    if page.query_selector("#truste-consent-button"):
-        page.click("#truste-consent-button")
-
-    page.fill("#username", CPF)
-    page.click("#button-submit")  # "Próximo"
-
-    page.wait_for_selector("input[type=password]", timeout=30000)
-    page.fill("input[type=password]", SENHA)
-    page.click("#button-submit, button[type=submit]")
-
-    try:
-        page.wait_for_url(f"{SITE.rstrip('/')}/**", timeout=30000)
-    except PWTimeout:
-        input("Login não concluiu (captcha/2FA?). Resolva na janela e tecle ENTER...")
+        sys.exit("Tempo esgotado esperando o login/página do extrato. Rode o programa de novo.")
+    print("Página do extrato detectada. Iniciando a extração...")
 
 
 def abrir_navegador(p):
@@ -96,13 +69,30 @@ def abrir_navegador(p):
         return p.chromium.launch_persistent_context(**args)  # Chromium do Playwright
 
 
+def argumento(nome: str) -> str | None:
+    """Valor de `--nome valor` ou `--nome=valor` na linha de comando."""
+    for i, a in enumerate(sys.argv):
+        if a == nome and i + 1 < len(sys.argv):
+            return sys.argv[i + 1]
+        if a.startswith(nome + "="):
+            return a.split("=", 1)[1]
+    return None
+
+
 def main() -> None:
     refazer = "--refazer" in sys.argv
+    ano = argumento("--ano")
+    mes = int(argumento("--mes")) if argumento("--mes") else None
+    if "--todos" in sys.argv:
+        ultimos_anos = None
+    else:
+        ultimos_anos = int(argumento("--anos") or ULTIMOS_ANOS)
+    so_ultimo = "--teste" in sys.argv and not (ano or mes)  # teste rápido: só o mês mais recente
     with sync_playwright() as p:
         ctx = abrir_navegador(p)
         page = ctx.pages[0] if ctx.pages else ctx.new_page()
-        login(page)
-        extrair_tudo(page, PAGINA_DEMONSTRATIVO, SAIDA, refazer)
+        aguardar_login(page)
+        extrair_tudo(page, SAIDA, refazer, ano, mes, so_ultimo, ultimos_anos)
         ctx.close()
     print(f"Concluído. Arquivos em: {SAIDA}")
 

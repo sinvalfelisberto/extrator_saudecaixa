@@ -13,7 +13,7 @@ SEM_SELECAO = "Selecione uma opção"
 COLUNAS = [
     "beneficiario", "ano", "mes", "mensalidade", "coparticipacao_mes", "total_mes",
     "prestador", "cnpj", "data_atendimento", "valor_lancamento",
-    "evento_data", "evento_descricao", "evento_coparticipacao", "evento_recebido_prestador",
+    "evento_data", "evento_descricao", "evento_coparticipacao", "Recebido pelo Prestador",
     "observacao",
 ]
 
@@ -30,12 +30,14 @@ JS_EXTRAIR = """() => {
     const rec = p.parentElement;
     const escopo = rec.querySelector('asc-viewport') || rec;
     const eventos = [];
-    let ev = null, proximoRecebido = false;
+    let data = null, ev = null, proximoRecebido = false;
+    // Uma data pode ter vários procedimentos abaixo dela: cada .nome-prestador após a data é um evento.
     escopo.querySelectorAll('.info-financDate, .nome-prestador, div.info-financ, p.float-right')
       .forEach(e => {
-        if (e.matches('.info-financDate')) { ev = {data: t(e)}; eventos.push(ev); proximoRecebido = false; }
+        if (e.matches('.info-financDate')) { data = t(e); ev = null; proximoRecebido = false; }
+        else if (data === null) return;  // cabeçalho (nome do prestador) vem antes da 1ª data
+        else if (e.matches('.nome-prestador')) { ev = {data, descricao: t(e)}; eventos.push(ev); proximoRecebido = false; }
         else if (!ev) return;
-        else if (e.matches('.nome-prestador')) ev.descricao = t(e);
         else if (e.matches('div.info-financ')) proximoRecebido = /Recebido pelo prestador/i.test(t(e));
         else if (proximoRecebido) { ev.recebido = t(e); proximoRecebido = false; }
         else if (ev.copart === undefined) ev.copart = t(e);
@@ -112,7 +114,7 @@ def linhas(beneficiario: str, ano: str, mes: int, dados: dict) -> list[dict]:
             saida.append({**lanc, "evento_data": e.get("data", ""),
                           "evento_descricao": e.get("descricao", ""),
                           "evento_coparticipacao": e.get("copart", ""),
-                          "evento_recebido_prestador": e.get("recebido", "")})
+                          "Recebido pelo Prestador": e.get("recebido", "")})
     return saida
 
 
@@ -124,21 +126,40 @@ def gravar(caminho: Path, rows: list[dict]) -> None:
         w.writerows(rows)
 
 
-def extrair_tudo(page, url: str, destino: Path, refazer: bool = False) -> None:
+def extrair_tudo(page, destino: Path, refazer: bool = False,
+                 ano_filtro: str | None = None, mes_filtro: int | None = None,
+                 so_ultimo: bool = False, ultimos_anos: int | None = None) -> None:
+    """Sem filtros extrai tudo. Os filtros restringem a um ano/mês; `so_ultimo` pega só o mês mais recente;
+    `ultimos_anos` limita aos N anos mais recentes (None = todos)."""
     destino.mkdir(exist_ok=True)
-    page.goto(url)
     page.wait_for_selector(".containerLancamentoItem", timeout=60000)
     aguardar(page)
 
     anos = opcoes(page.locator("p-dropdown.selectAno").first)
     print("Anos disponíveis:", ", ".join(anos))
 
+    if ano_filtro:
+        if ano_filtro not in anos:
+            raise SystemExit(f"Ano {ano_filtro} indisponível. Disponíveis: {', '.join(anos)}")
+        anos = [ano_filtro]
+
+    if ultimos_anos and not ano_filtro:
+        anos = anos[:ultimos_anos]  # o site lista do ano mais recente para o mais antigo
+        print(f"Extraindo os {len(anos)} ano(s) mais recente(s): {', '.join(anos)}")
+
+    if so_ultimo:
+        anos = anos[:1]  # a lista vem do ano mais recente para o mais antigo
+
     for ano in anos:
         selecionar_ano(page, ano)
         itens = page.locator(".containerLancamentoItem")
         nomes_meses = [m.strip() for m in page.locator(".containerLancamentoItem .strMesLI").all_inner_texts()]
+        if so_ultimo:
+            nomes_meses = nomes_meses[:1]  # meses vêm do mais recente para o mais antigo
         for i, nome_mes in enumerate(nomes_meses):
             mes = MESES[nome_mes]
+            if mes_filtro and mes != mes_filtro:
+                continue
             abrir_mes(page, itens.nth(i))
             benef_dd = page.locator("p-dropdown.custom-border").first
             for benef in opcoes(benef_dd):
