@@ -1,10 +1,17 @@
 # 📄 Extrator de Extratos do Saúde CAIXA
 
-Este programa **baixa os extratos** do site do Saúde CAIXA: de **cada beneficiário**, de **cada mês**,
-dos **2 anos mais recentes** (dá para mudar, veja mais abaixo). Cada extrato vira um arquivo que abre
+Esta é uma ferramenta de **uso particular**: ela serve para que **cada beneficiário baixe os seus
+próprios extratos** do Saúde CAIXA, para **guardar e usar como quiser** (conferir gastos, organizar
+documentos, declarar imposto de renda, fazer planilhas...).
+
+Ela **baixa os extratos** do site: de **cada beneficiário** da sua conta, de **cada mês**, dos
+**2 anos mais recentes** (dá para mudar, veja mais abaixo). Cada extrato vira um arquivo que abre
 no Excel.
 
-Você faz o login no site (o programa **não** sabe a sua senha) e ele faz todo o resto, sozinho.
+Você faz o login no site com os **seus** dados (o programa **não** sabe a sua senha) e ele faz todo o
+resto, sozinho. Os arquivos ficam **só no seu computador**.
+
+🔗 **Site do Saúde CAIXA:** [https://atendimentosaude.caixa.gov.br/](https://atendimentosaude.caixa.gov.br/)
 
 Você não precisa saber programar. É só seguir os passos abaixo, **um de cada vez**. 🙂
 
@@ -15,7 +22,7 @@ Você não precisa saber programar. É só seguir os passos abaixo, **um de cada
 1. Um computador com internet.
 2. O **Google Chrome** instalado. ([baixar aqui](https://www.google.com/chrome/))
 3. O **Python** instalado (o Passo 1 ensina).
-4. Seu **CPF** e sua **senha** do Saúde CAIXA. Você digita direto no site; o programa **não guarda** nada.
+4. Seu **CPF** e sua **senha** de acesso ao [site do Saúde CAIXA](https://atendimentosaude.caixa.gov.br/). Você digita direto no site; o programa **não guarda** nada.
 
 ---
 
@@ -54,33 +61,74 @@ python main.py
 
 > No Mac ou Linux, se der erro, use `python3 main.py`.
 
-### O que vai acontecer
+O que vai acontecer agora:
 
 1. **Na primeira vez**, o programa vai **instalar coisas sozinho**. Aparecem muitas letrinhas e
    barras de progresso. Isso é normal e pode levar alguns minutos. **Espere.**
-2. Uma janela do **navegador** vai abrir sozinha, na página de entrada do Saúde CAIXA.
-   Na janela preta vai aparecer um aviso pedindo que você faça o login.
-3. **É a sua vez:** faça o **login normalmente** nessa janela (CPF, senha e o que mais o site pedir,
-   como código por SMS ou a caixinha "não sou um robô").
-4. Depois de entrar, abra a página do extrato: no menu, **Meus Dados → Financeiro → Extrato
-   Financeiro**. Você vai ver a lista de meses (Setembro, Agosto...) do lado esquerdo.
-   Assim que essa lista aparecer, o programa **percebe sozinho** (não precisa apertar nada) e começa a
-   trabalhar: vai trocando de ano, de mês e de pessoa. **Não feche e não mexa na janela a partir daí.**
-5. Na janela preta vão aparecer linhas como:
+2. Uma janela do **navegador** (Chrome) vai abrir sozinha, já na página de entrada do **Saúde CAIXA**.
+3. Na janela preta vai aparecer um aviso assim:
 
    ```
-   Extraindo os 2 ano(s) mais recente(s): 2026, 2025
-   SINVAL_AMARAL_FELISBERTO_2026_09.csv: 27 linha(s)
+   >>> 1) Faça o login na janela do navegador que abriu.
+   >>> 2) Depois, abra a página do Extrato Financeiro (Meus Dados > Financeiro > Extrato).
    ```
 
-   Cada linha com `.csv` é **um extrato salvo**. ✅
-6. Quando terminar, aparece **`Concluído.`** e o navegador fecha sozinho.
+   O programa agora está **esperando por você**. Ele só começa a trabalhar depois do Passo 4.
+
+---
+
+## Passo 4 — Entrar no site e abrir o Extrato Financeiro 🔑 (é você quem faz)
+
+Faça isto **na janela do navegador** que o programa abriu (não precisa abrir outro navegador).
+Se a janela não estiver na página do site, cole este endereço na barra de cima dela:
+
+👉 **https://atendimentosaude.caixa.gov.br/** ([abrir o site](https://atendimentosaude.caixa.gov.br/))
+
+Depois:
+
+1. **Faça o login no site do Saúde CAIXA**: digite seu **CPF**, clique em *Próximo*, digite sua
+   **senha** e entre. Se o site pedir algo a mais (código por SMS, a caixinha "não sou um robô"),
+   faça normalmente.
+2. Com o login feito, no menu lá em cima, clique em **Meus Dados**.
+3. Depois clique em **Financeiro**.
+4. Depois clique em **Extrato Financeiro**.
+5. Espere a página carregar até aparecer, **do lado esquerdo**, a lista de meses
+   (*Setembro, Agosto, Julho...*) com os valores.
+
+> 💡 **Atalho (opcional):** em vez de clicar nos menus, você pode colar este endereço na barra da janela
+> do programa depois de fazer o login. Ele costuma levar direto ao Extrato Financeiro:
+> `https://atendimentosaude.caixa.gov.br/#/meus-dados/financeiro/extrato/reeembolso`
+
+✅ **Pronto!** Assim que essa lista de meses aparecer, o programa **percebe sozinho** e **começa a
+extração**. Você não precisa apertar nenhum botão nem voltar na janela preta.
+
+> ⏱️ O programa espera até **10 minutos** por você. Se passar disso, ele avisa e fecha: é só rodar o
+> Passo 3 de novo.
+>
+> 🔒 Sua senha **só é digitada no site**. O programa não sabe nem guarda a senha.
+
+---
+
+## Passo 5 — Acompanhar a extração ⏳
+
+A partir daqui o programa trabalha sozinho: vai trocando de **ano**, de **mês** e de **pessoa**.
+
+- **Não feche e não mexa na janela do navegador.** Se você clicar em algo lá, pode atrapalhar.
+- Na janela preta vão aparecer linhas como:
+
+  ```
+  Extraindo os 2 ano(s) mais recente(s): 2026, 2025
+  SINVAL_AMARAL_FELISBERTO_2026_09.csv: 27 linha(s)
+  ```
+
+  Cada linha com `.csv` é **um extrato salvo**. ✅
+- Quando terminar, aparece **`Concluído.`** e o navegador fecha sozinho.
 
 ⏳ Pode demorar bastante (são muitos meses e pessoas). Deixe o computador ligado e não feche nenhuma janela.
 
 ---
 
-## Passo 4 — Pegar seus extratos 🎉
+## Passo 6 — Pegar seus extratos 🎉
 
 Abra a pasta **`extratos`** (dentro de `extrator_saudecaixa`). Lá estão todos os arquivos, com o nome
 no formato:
@@ -117,29 +165,6 @@ Exemplo de uma linha (só as últimas colunas):
 
 ---
 
-## Ver os extratos na tela 👀 (visualizador)
-
-Em vez de abrir arquivo por arquivo no Excel, você pode ver tudo numa página simples, com filtros.
-
-1. Na janela preta (mesma do Passo 2), digite e aperte **Enter**:
-
-   ```
-   python visualizar.py
-   ```
-
-2. O navegador abre uma página com:
-   - **Filtros** de beneficiário, ano e mês;
-   - **Cartões** com a mensalidade, a coparticipação, o total do mês e o total recebido pelos prestadores;
-   - A lista de **atendimentos**: clique em um para ver todos os procedimentos dele (ou use
-     **Expandir tudo**);
-   - Uma **busca** por nome do prestador, CNPJ ou procedimento (ex.: "ferritina").
-
-A página usa os arquivos da pasta `extratos`. Sempre que o `python main.py` termina, ele já atualiza
-os dados dela; se você só apagou ou adicionou CSVs na mão, rode `python visualizar.py` de novo.
-Também dá para abrir direto o arquivo `visualizador/index.html` com dois cliques.
-
----
-
 ## Opções (só se você quiser mudar o padrão)
 
 Por padrão, `python main.py` baixa os **2 anos mais recentes**, todos os meses e todas as pessoas.
@@ -165,7 +190,7 @@ troque o número em `ULTIMOS_ANOS=2`. Esse arquivo é opcional: sem ele, o progr
 
 ## Rodar de novo outro dia
 
-Repita só o **Passo 2** e o **Passo 3**.
+Repita do **Passo 2** ao **Passo 4** (abrir o terminal, rodar, entrar no site e abrir o Extrato Financeiro). O Passo 5 é só acompanhar.
 
 O programa **pula os arquivos que já existem**, então a segunda vez é bem mais rápida. Por isso, se um
 mês ainda estava em andamento quando você baixou (e o site depois atualizou os valores), use
@@ -182,7 +207,7 @@ ele continua de onde parou.
 |---|---|
 | `'python' não é reconhecido...` | O Python não foi instalado direito. Refaça o **Passo 1** e lembre de marcar **Add python.exe to PATH**. |
 | "Estamos detectando comportamento malicioso" | É a proteção da Caixa. Espere alguns minutos e tente de novo. Se continuar, tente por outra rede de internet. |
-| O programa não continua depois do login | Você precisa **abrir a página do Extrato Financeiro** (Meus Dados → Financeiro → Extrato Financeiro) e ver a lista de meses. O programa espera até 10 minutos; depois disso, rode de novo. |
+| O programa não começa depois do login | Só o login não basta: você precisa **abrir o Extrato Financeiro** (**Meus Dados → Financeiro → Extrato Financeiro**) e esperar aparecer a lista de meses à esquerda. O programa espera até 10 minutos; depois disso, rode de novo. |
 | `Tempo esgotado esperando o login/página do extrato` | Passaram-se 10 minutos sem o extrato abrir. Rode de novo e faça o login mais rápido. |
 | `Ano 20XX indisponível` | Você pediu um ano que não existe no site. A mensagem mostra quais existem. |
 | A pasta `extratos` ficou vazia | Rode de novo e leia as mensagens na janela preta. Se aparecer um erro, mande uma foto dele para quem te passou o programa. |
@@ -198,9 +223,22 @@ nem guarda sua senha**: quem digita é você, direto no site.
 **Posso usar o computador enquanto roda?** Pode, mas **não feche nem mexa** na janela do navegador
 que ele abriu.
 
-**Onde ficam os arquivos?** Na pasta `extratos`, dentro da pasta do programa. A tela de visualização
-fica na pasta `visualizador`.
+**Onde ficam os arquivos?** Na pasta `extratos`, dentro da pasta do programa.
 
 **Por que o Excel mostra tudo numa coluna só?** Os arquivos usam **ponto e vírgula (`;`)** para separar as
 colunas, que é o padrão do Excel em português. Se abrir tudo junto, use *Dados → Texto para Colunas*
 e escolha o ponto e vírgula.
+
+---
+
+## Uso e licença
+
+- **Uso particular:** use esta ferramenta apenas com a **sua própria conta** e para acessar os **seus
+  próprios dados** (e os de quem é beneficiário na sua conta). Não use para acessar contas de terceiros.
+- **Sem vínculo com a Caixa:** este é um projeto independente. **Não é um produto oficial** da Caixa
+  Econômica Federal nem tem ligação com ela. Se o site mudar, a ferramenta pode parar de funcionar.
+- **Seus dados, sua responsabilidade:** os extratos têm informações pessoais e de saúde. Guarde os
+  arquivos com cuidado e **não compartilhe** a pasta `extratos`.
+- **Licença MIT:** o código é livre. Você pode usar, copiar, modificar e compartilhar, inclusive para
+  outras pessoas da família, desde que mantenha o aviso de direitos autorais. O programa é oferecido
+  **"como está"**, sem garantias. O texto completo está no arquivo [LICENSE](LICENSE).

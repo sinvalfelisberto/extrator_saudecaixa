@@ -12,51 +12,106 @@
     <p id="resumo-geral"></p>
   </header>
 
+  <nav class="abas" aria-label="Seções">
+    <button type="button" class="aba ativa" data-aba="extratos">Extratos</button>
+    <button type="button" class="aba" data-aba="relatorios">Relatórios de auditoria</button>
+  </nav>
+
   <main>
-    <section class="filtros" aria-label="Filtros">
-      <label>Beneficiário
-        <select id="f-beneficiario"></select>
-      </label>
-      <label>Ano
-        <select id="f-ano"></select>
-      </label>
-      <label>Mês
-        <select id="f-mes"></select>
-      </label>
-      <label class="busca">Buscar
-        <input id="f-busca" type="search" placeholder="Prestador, CNPJ ou procedimento...">
-      </label>
-    </section>
-
-    <section id="vazio" class="vazio" hidden>
-      <h2>Nenhum extrato encontrado</h2>
-      <p>Rode <code>python main.py</code> para baixar os extratos e depois
-         <code>python visualizar.py</code> para atualizar esta tela.</p>
-    </section>
-
-    <div id="conteudo">
-      <section class="cards" aria-label="Totais do mês">
-        <article class="card"><span>Mensalidade</span><strong id="c-mensalidade"></strong></article>
-        <article class="card"><span>Coparticipação (mês)</span><strong id="c-copart"></strong></article>
-        <article class="card destaque"><span>Total do mês</span><strong id="c-total"></strong></article>
-        <article class="card"><span>Atendimentos</span><strong id="c-atend"></strong></article>
-        <article class="card"><span>Recebido pelos prestadores</span><strong id="c-recebido"></strong></article>
+    <!-- ===================== ABA: EXTRATOS ===================== -->
+    <div id="aba-extratos">
+      <section class="filtros" aria-label="Filtros">
+        <label>Beneficiário
+          <select id="f-beneficiario"></select>
+        </label>
+        <label>Ano
+          <select id="f-ano"></select>
+        </label>
+        <label>Mês
+          <select id="f-mes"></select>
+        </label>
+        <label class="busca">Buscar
+          <input id="f-busca" type="search" placeholder="Prestador, CNPJ ou procedimento...">
+        </label>
       </section>
 
-      <div class="acoes">
-        <h2>Atendimentos</h2>
-        <div>
-          <button id="b-expandir" type="button">Expandir tudo</button>
-          <button id="b-recolher" type="button">Recolher tudo</button>
+      <section id="vazio" class="vazio" hidden>
+        <h2>Nenhum extrato encontrado</h2>
+        <p>Rode <code>python main.py</code> para baixar os extratos e depois
+           <code>python visualizar.py</code> para atualizar esta tela.</p>
+      </section>
+
+      <div id="conteudo">
+        <section class="cards" aria-label="Totais do mês">
+          <article class="card"><span>Mensalidade</span><strong id="c-mensalidade"></strong></article>
+          <article class="card"><span>Coparticipação (mês)</span><strong id="c-copart"></strong></article>
+          <article class="card destaque"><span>Total do mês</span><strong id="c-total"></strong></article>
+          <article class="card"><span>Atendimentos</span><strong id="c-atend"></strong></article>
+          <article class="card"><span>Recebido pelos prestadores</span><strong id="c-recebido"></strong></article>
+        </section>
+
+        <div class="acoes">
+          <h2>Atendimentos</h2>
+          <div>
+            <button id="b-expandir" type="button">Expandir tudo</button>
+            <button id="b-recolher" type="button">Recolher tudo</button>
+          </div>
+        </div>
+
+        <div id="lista"></div>
+        <p id="sem-resultado" class="vazio" hidden>Nada encontrado para essa busca.</p>
+      </div>
+    </div>
+
+    <!-- ===================== ABA: RELATÓRIOS ===================== -->
+    <div id="aba-relatorios" hidden>
+      <section id="rel-vazio" class="vazio" hidden>
+        <h2>Nenhum extrato encontrado</h2>
+        <p>Rode <code>python main.py</code> para baixar os extratos e depois
+           <code>python visualizar.py</code>.</p>
+      </section>
+
+      <div id="rel-app">
+        <section class="painel-rel" aria-label="Filtros dos relatórios">
+          <label>Beneficiário
+            <select id="r-beneficiario"></select>
+          </label>
+          <label>Ano
+            <select id="r-ano"></select>
+          </label>
+          <label>Variação mensal acima de (%)
+            <input id="r-variacao" type="number" min="0" step="5" value="30">
+          </label>
+          <label>Atendimento atrasado acima de (meses)
+            <input id="r-antigo" type="number" min="0" step="1" value="3">
+          </label>
+          <label>Desvio do valor acima de (%)
+            <input id="r-desvio" type="number" min="0" step="5" value="50">
+          </label>
+          <label class="check"><input id="r-so-ocorrencias" type="checkbox"> Mostrar só ocorrências</label>
+        </section>
+
+        <div class="rel-layout">
+          <nav class="lista-rel" id="rel-nav" aria-label="Relatórios"></nav>
+          <section>
+            <div class="acoes-rel">
+              <button id="r-pdf" type="button" class="primario">Exportar este relatório (PDF)</button>
+              <button id="r-pdf-todos" type="button">Exportar todos (PDF)</button>
+              <span class="dica">Na janela que abrir, escolha <b>Salvar como PDF</b> como destino.</span>
+            </div>
+            <div id="rel-conteudo"></div>
+          </section>
         </div>
       </div>
 
-      <div id="lista"></div>
-      <p id="sem-resultado" class="vazio" hidden>Nada encontrado para essa busca.</p>
+      <!-- Usado só na impressão de "todos os relatórios" -->
+      <div id="rel-impressao"></div>
     </div>
   </main>
 
   <script src="dados.js"></script>
   <script src="app.js"></script>
+  <script src="relatorios.js"></script>
+  <script src="relatorios-ui.js"></script>
 </body>
 </html>

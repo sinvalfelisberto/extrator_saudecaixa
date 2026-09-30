@@ -4,11 +4,14 @@ import re
 import unicodedata
 from pathlib import Path
 
+from playwright.sync_api import TimeoutError as PWTimeout
+
 MESES = {
     "Janeiro": 1, "Fevereiro": 2, "Março": 3, "Abril": 4, "Maio": 5, "Junho": 6,
     "Julho": 7, "Agosto": 8, "Setembro": 9, "Outubro": 10, "Novembro": 11, "Dezembro": 12,
 }
 SEM_SELECAO = "Selecione uma opção"
+TENTATIVAS = 5  # quantas vezes tentar cada arquivo (e cada mês) antes de desistir e ir para o próximo
 
 COLUNAS = [
     "beneficiario", "ano", "mes", "mensalidade", "coparticipacao_mes", "total_mes",
@@ -123,6 +126,8 @@ def linhas(beneficiario: str, ano: str, mes: int, dados: dict) -> list[dict]:
                           "evento_descricao": e.get("descricao", ""),
                           "evento_coparticipacao": e.get("copart", ""),
                           "Recebido pelo Prestador": e.get("recebido", "")})
+    if not saida:  # mês sem lançamentos: guarda ao menos os totais do mês
+        saida.append(base)
     return saida
 
 
@@ -132,6 +137,54 @@ def gravar(caminho: Path, rows: list[dict]) -> None:
         w = csv.DictWriter(f, fieldnames=COLUNAS, delimiter=";")
         w.writeheader()
         w.writerows(rows)
+
+
+def ler_beneficiario(page, item, nome_mes: str, ano: str, benef: str, tentativas: int = TENTATIVAS) -> dict:
+    """Escolhe o beneficiário e lê a tela. Se a tela não responder, reabre o mês e tenta de novo."""
+    erro: Exception | None = None
+    for n in range(1, tentativas + 1):
+        try:
+            benef_dd = page.locator("p-dropdown.custom-border").first
+            escolher(page, benef_dd, benef)
+            # Garante que o beneficiário escolhido é o que está na tela antes de ler.
+            benef_dd.locator("label.ui-dropdown-label").filter(has_text=benef).wait_for(timeout=15000)
+            page.get_by_text("Detalhes do Lançamento").first.wait_for(timeout=30000)
+            return page.evaluate(JS_EXTRAIR)
+        except PWTimeout as e:
+            erro = e
+            print(f"  tentativa {n}/{tentativas} falhou para {benef} ({nome_mes}/{ano})")
+            page.keyboard.press("Escape")  # fecha lista aberta, se houver
+            if n < tentativas:
+                page.wait_for_timeout(2000 * n)  # pausa crescente: dá tempo da página se recuperar
+                try:
+                    abrir_mes(page, item, nome_mes, ano)  # reabre o mês e tenta de novo
+                except (PWTimeout, RuntimeError):
+                    pass  # a próxima tentativa reporta o erro, se persistir
+    raise erro
+
+
+def abrir_mes_com_tentativas(page, item, nome_mes: str, ano: str) -> bool:
+    for n in range(1, TENTATIVAS + 1):
+        try:
+            abrir_mes(page, item, nome_mes, ano)
+            return True
+        except (PWTimeout, RuntimeError):
+            print(f"  tentativa {n}/{TENTATIVAS} de abrir {nome_mes}/{ano} falhou")
+            page.keyboard.press("Escape")
+            page.wait_for_timeout(2000 * n)
+    return False
+
+
+def registrar_falha(page, destino: Path, falhas: list[str], nome: str, motivo: str) -> None:
+    """Anota a falha, guarda uma captura da tela para diagnóstico e segue para o próximo arquivo."""
+    falhas.append(nome)
+    pasta = destino.parent / "diagnostico"
+    pasta.mkdir(exist_ok=True)
+    try:
+        page.screenshot(path=str(pasta / f"{nome}.png"))
+    except Exception:
+        pass
+    print(f"✗ FALHOU {nome}: {motivo}")
 
 
 def extrair_tudo(page, destino: Path, refazer: bool = False,
@@ -158,6 +211,9 @@ def extrair_tudo(page, destino: Path, refazer: bool = False,
     if so_ultimo:
         anos = anos[:1]  # a lista vem do ano mais recente para o mais antigo
 
+    ultima: dict = {}  # beneficiário -> conteúdo do último mês gravado (detecta leitura desatualizada)
+    falhas: list[str] = []
+
     for ano in anos:
         selecionar_ano(page, ano)
         itens = page.locator(".containerLancamentoItem")
@@ -168,17 +224,32 @@ def extrair_tudo(page, destino: Path, refazer: bool = False,
             mes = MESES[nome_mes]
             if mes_filtro and mes != mes_filtro:
                 continue
-            abrir_mes(page, itens.nth(i), nome_mes, ano)
-            benef_dd = page.locator("p-dropdown.custom-border").first
-            for benef in opcoes(benef_dd):
+            if not abrir_mes_com_tentativas(page, itens.nth(i), nome_mes, ano):
+                registrar_falha(page, destino, falhas, f"{ano}_{mes:02d}", f"não abriu o mês após {TENTATIVAS} tentativas")
+                continue
+            for benef in opcoes(page.locator("p-dropdown.custom-border").first):
                 arq = destino / f"{slug(benef)}_{ano}_{mes:02d}.csv"
                 if arq.exists() and not refazer:
                     print("já existe, pulando:", arq.name)
                     continue
-                escolher(page, benef_dd, benef)
-                # Garante que o beneficiário escolhido é o que está na tela antes de ler.
-                benef_dd.locator("label.ui-dropdown-label").filter(has_text=benef).wait_for(timeout=15000)
-                page.get_by_text("Detalhes do Lançamento").first.wait_for(timeout=30000)
-                rows = linhas(benef, ano, mes, page.evaluate(JS_EXTRAIR))
+                try:
+                    dados = ler_beneficiario(page, itens.nth(i), nome_mes, ano, benef)
+                except (PWTimeout, RuntimeError) as erro:
+                    registrar_falha(page, destino, falhas, arq.stem, f"falhou após {TENTATIVAS} tentativas ({type(erro).__name__})")
+                    continue
+                rows = linhas(benef, ano, mes, dados)
                 gravar(arq, rows)
+                if not dados["registros"]:
+                    print(f"{arq.name}: sem lançamentos no mês")
+                    continue
                 print(f"{arq.name}: {len(rows)} linha(s)")
+                # Alerta de leitura desatualizada: o mês não deveria sair igual ao anterior do mesmo beneficiário.
+                assinatura = tuple(tuple(r[c] for c in COLUNAS if c not in ("ano", "mes")) for r in rows)
+                if ultima.get(benef) == assinatura:
+                    print(f"  ⚠ ATENÇÃO: {arq.name} é idêntico ao mês anterior. A tela pode não ter atualizado; confira no site.")
+                ultima[benef] = assinatura
+
+    if falhas:
+        print(f"\n✗ {len(falhas)} arquivo(s) NÃO foram gerados: {', '.join(falhas)}")
+        print("  Rode o programa de novo (ele pula o que já está pronto e tenta só o que faltou).")
+        print(f"  Capturas de tela do que aparecia em cada falha: {destino.parent / 'diagnostico'}")

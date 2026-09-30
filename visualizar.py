@@ -8,6 +8,10 @@ import json
 import webbrowser
 from pathlib import Path
 
+# Visualizador DESATIVADO por enquanto (dados dos CSVs em conferência). Para reativar: mude para False
+# e volte a chamar gerar_dados() no fim do main.py.
+DESATIVADO = True
+
 BASE = Path(__file__).parent
 EXTRATOS = BASE / "extratos"
 PASTA = BASE / "visualizador"
@@ -28,6 +32,9 @@ def gerar_dados(origem: Path = EXTRATOS, destino: Path = PASTA) -> int:
 
 
 def main() -> None:
+    if DESATIVADO:
+        print("O visualizador está desativado no momento (dados em conferência).")
+        return
     n = gerar_dados()
     print(f"{n} linha(s) carregada(s) de {EXTRATOS}")
     if n == 0:

@@ -11,6 +11,9 @@ extratos/*
 # Dados do visualizador (gerados a partir dos CSVs; contêm dados pessoais)
 visualizador/dados.js
 
+# Capturas de tela de falhas da extração (podem mostrar dados pessoais)
+diagnostico/
+
 # Capturas de tela de apoio (mostram dados pessoais)
 step_by_step/
 

@@ -35,7 +35,6 @@ from dotenv import load_dotenv  # noqa: E402
 from playwright.sync_api import TimeoutError as PWTimeout, sync_playwright  # noqa: E402
 
 from extrator import extrair_tudo  # noqa: E402
-from visualizar import gerar_dados  # noqa: E402
 
 load_dotenv(BASE / ".env")
 
@@ -95,9 +94,7 @@ def main() -> None:
         aguardar_login(page)
         extrair_tudo(page, SAIDA, refazer, ano, mes, so_ultimo, ultimos_anos)
         ctx.close()
-    gerar_dados()  # atualiza o visualizador com os CSVs de ./extratos
     print(f"Concluído. Arquivos em: {SAIDA}")
-    print("Para visualizar os extratos na tela, rode: python visualizar.py")
 
 
 if __name__ == "__main__":
