@@ -1,0 +1,28 @@
+# Credenciais (NUNCA versionar; use .env.example como modelo)
+.env
+
+# Sessão/cookies do navegador automatizado
+.browser_profile/
+
+# Dados extraídos (contêm informações pessoais e de saúde)
+extratos/*
+!extratos/.gitkeep
+
+# Capturas de tela de apoio (mostram dados pessoais)
+step_by_step/
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Playwright / testes
+test-results/
+playwright-report/
+
+# Editores e sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
