@@ -14,7 +14,6 @@ COLUNAS = [
     "beneficiario", "ano", "mes", "mensalidade", "coparticipacao_mes", "total_mes",
     "prestador", "cnpj", "data_atendimento", "valor_lancamento",
     "evento_data", "evento_descricao", "evento_coparticipacao", "Recebido pelo Prestador",
-    "observacao",
 ]
 
 # Roda dentro da página: lê totais do cabeçalho e cada lançamento (com seus eventos, que
@@ -47,7 +46,6 @@ JS_EXTRAIR = """() => {
       valor: t(rec.querySelector('.valueCP')),
       cnpj: t(p),
       data_atendimento: t(rec.querySelector('.comp-data p.float-right')),
-      observacao: t(rec.querySelector('.msg-erro')),
       eventos,
     };
   });
@@ -108,8 +106,7 @@ def linhas(beneficiario: str, ano: str, mes: int, dados: dict) -> list[dict]:
     saida = []
     for r in dados["registros"]:
         lanc = {**base, "prestador": r["prestador"], "cnpj": r["cnpj"],
-                "data_atendimento": r["data_atendimento"], "valor_lancamento": r["valor"],
-                "observacao": r["observacao"]}
+                "data_atendimento": r["data_atendimento"], "valor_lancamento": r["valor"]}
         for e in r["eventos"] or [{}]:
             saida.append({**lanc, "evento_data": e.get("data", ""),
                           "evento_descricao": e.get("descricao", ""),

@@ -1,7 +1,10 @@
 # 📄 Extrator de Extratos do Saúde CAIXA
 
-Este programa **entra sozinho** no site do Saúde CAIXA e **baixa os extratos** de todos os
-beneficiários, de todos os meses e de todos os anos. Cada extrato vira um arquivo que abre no Excel.
+Este programa **baixa os extratos** do site do Saúde CAIXA: de **cada beneficiário**, de **cada mês**,
+dos **2 anos mais recentes** (dá para mudar, veja mais abaixo). Cada extrato vira um arquivo que abre
+no Excel.
+
+Você faz o login no site (o programa **não** sabe a sua senha) e ele faz todo o resto, sozinho.
 
 Você não precisa saber programar. É só seguir os passos abaixo, **um de cada vez**. 🙂
 
@@ -11,8 +14,8 @@ Você não precisa saber programar. É só seguir os passos abaixo, **um de cada
 
 1. Um computador com internet.
 2. O **Google Chrome** instalado. ([baixar aqui](https://www.google.com/chrome/))
-3. O **Python** instalado (o passo 1 ensina).
-4. Seu **CPF** e sua **senha** do Saúde CAIXA (você vai digitar direto no site, o programa **não guarda** nada).
+3. O **Python** instalado (o Passo 1 ensina).
+4. Seu **CPF** e sua **senha** do Saúde CAIXA. Você digita direto no site; o programa **não guarda** nada.
 
 ---
 
@@ -56,19 +59,21 @@ python main.py
 1. **Na primeira vez**, o programa vai **instalar coisas sozinho**. Aparecem muitas letrinhas e
    barras de progresso. Isso é normal e pode levar alguns minutos. **Espere.**
 2. Uma janela do **navegador** vai abrir sozinha, na página de entrada do Saúde CAIXA.
+   Na janela preta vai aparecer um aviso pedindo que você faça o login.
 3. **É a sua vez:** faça o **login normalmente** nessa janela (CPF, senha e o que mais o site pedir,
    como código por SMS ou a caixinha "não sou um robô").
 4. Depois de entrar, abra a página do extrato: no menu, **Meus Dados → Financeiro → Extrato
    Financeiro**. Você vai ver a lista de meses (Setembro, Agosto...) do lado esquerdo.
    Assim que essa lista aparecer, o programa **percebe sozinho** (não precisa apertar nada) e começa a
-   trabalhar: vai trocando de mês, de ano e de pessoa. **Não feche e não mexa na janela a partir daí.**
+   trabalhar: vai trocando de ano, de mês e de pessoa. **Não feche e não mexa na janela a partir daí.**
 5. Na janela preta vão aparecer linhas como:
 
    ```
+   Extraindo os 2 ano(s) mais recente(s): 2026, 2025
    SINVAL_AMARAL_FELISBERTO_2026_09.csv: 27 linha(s)
    ```
 
-   Cada linha dessas é **um extrato salvo**. ✅
+   Cada linha com `.csv` é **um extrato salvo**. ✅
 6. Quando terminar, aparece **`Concluído.`** e o navegador fecha sozinho.
 
 ⏳ Pode demorar bastante (são muitos meses e pessoas). Deixe o computador ligado e não feche nenhuma janela.
@@ -85,60 +90,58 @@ NOME_ANO_MES.csv
 ```
 
 Exemplo: `SINVAL_AMARAL_FELISBERTO_2026_09.csv` é o extrato de **setembro de 2026** do Sinval.
+(O mês aparece com dois números: `01` = janeiro, `09` = setembro, `12` = dezembro.)
 
 Dê dois cliques em qualquer arquivo para abrir no **Excel**.
 
 ### O que tem dentro de cada arquivo
 
-Cada linha é um atendimento. As colunas são:
+Cada linha é **um procedimento** (um exame, uma consulta, uma sessão...). Se um atendimento teve
+vários procedimentos, cada um ganha a sua própria linha, repetindo as informações do atendimento.
 
 | Coluna | O que é |
 |---|---|
 | `beneficiario`, `ano`, `mes` | De quem é e de qual mês |
 | `mensalidade`, `coparticipacao_mes`, `total_mes` | Os valores do mês |
-| `prestador`, `cnpj` | Onde foi o atendimento (clínica, hospital…) |
-| `data_atendimento`, `valor_lancamento` | Dia do atendimento e valor lançado |
-| `evento_data`, `evento_descricao` | O que foi feito (ex.: sessão de psicoterapia) |
-| `evento_coparticipacao`, `Recebido pelo Prestador` | Quanto você pagou e quanto o prestador recebeu |
-| `observacao` | Avisos do site (ex.: "lançamento não foi debitado") |
+| `prestador`, `cnpj` | Onde foi o atendimento (clínica, hospital, laboratório…) |
+| `data_atendimento`, `valor_lancamento` | Dia do atendimento e a coparticipação total dele |
+| `evento_data`, `evento_descricao` | Quando foi e o que foi feito (ex.: "Creatinina - pesquisa e/ou dosagem") |
+| `evento_coparticipacao` | Quanto foi cobrado de coparticipação nesse procedimento |
+| `Recebido pelo Prestador` | Quanto o prestador recebeu por esse procedimento |
+
+Exemplo de uma linha (só as últimas colunas):
+
+| evento_data | evento_descricao | evento_coparticipacao | Recebido pelo Prestador |
+|---|---|---|---|
+| 04 jul. 2026 | Creatinina - pesquisa e/ou dosagem | R$ 0,00 | R$ 6,58 |
 
 ---
 
-## Quer só testar antes? (um mês só)
+## Opções (só se você quiser mudar o padrão)
 
-Para baixar **apenas o mês mais recente** (todas as pessoas, mas só um mês), use:
+Por padrão, `python main.py` baixa os **2 anos mais recentes**, todos os meses e todas as pessoas.
+Para mudar, acrescente uma destas opções depois de `python main.py`:
 
-```
-python main.py --teste
-```
+| Quero... | Comando |
+|---|---|
+| Só **testar**, baixando apenas o **mês mais recente** | `python main.py --teste` |
+| Um **mês específico** (ex.: setembro de 2026) | `python main.py --ano 2026 --mes 9` |
+| Um **ano inteiro** (ex.: 2025) | `python main.py --ano 2025` |
+| Os **3 anos** mais recentes | `python main.py --anos 3` |
+| **Todos** os anos disponíveis (2022 até hoje) | `python main.py --todos` |
+| **Baixar de novo**, sobrescrevendo arquivos que já existem | `python main.py --refazer` |
 
-Para escolher um mês específico, por exemplo setembro de 2026:
-
-```
-python main.py --ano 2026 --mes 9
-```
-
----
-
-## Quantos anos ele baixa?
-
-Por padrão, os **2 anos mais recentes** (hoje: 2026 e 2025). Para mudar:
-
-```
-python main.py --anos 3       (os 3 anos mais recentes)
-python main.py --todos        (todos os anos disponíveis, de 2022 até hoje)
-```
+Dá para juntar opções. Exemplo: `python main.py --teste --refazer`.
 
 ---
 
 ## Rodar de novo outro dia
 
-Repita só o **Passo 2** e o **Passo 3**. O programa **pula os arquivos que já existem**, então é
-rápido. Se quiser **baixar tudo de novo** (sobrescrever os arquivos), use:
+Repita só o **Passo 2** e o **Passo 3**.
 
-```
-python main.py --refazer
-```
+O programa **pula os arquivos que já existem**, então a segunda vez é bem mais rápida. Por isso, se um
+mês ainda estava em andamento quando você baixou (e o site depois atualizou os valores), use
+`--refazer` para baixar de novo e pegar os dados novos.
 
 Se a execução for interrompida no meio (acabou a internet, fechou sem querer…), é só rodar de novo:
 ele continua de onde parou.
@@ -151,17 +154,24 @@ ele continua de onde parou.
 |---|---|
 | `'python' não é reconhecido...` | O Python não foi instalado direito. Refaça o **Passo 1** e lembre de marcar **Add python.exe to PATH**. |
 | "Estamos detectando comportamento malicioso" | É a proteção da Caixa. Espere alguns minutos e tente de novo. Se continuar, tente por outra rede de internet. |
-| O login não termina / o programa não continua | Confira se você realmente entrou no site (deve aparecer o menu *Meus Dados*). O programa espera até 10 minutos; depois disso, rode de novo. |
-| A pasta `extratos` ficou vazia | Rode de novo e leia as mensagens na janela preta. Se aparecer um erro em vermelho, mande uma foto dele para quem te passou o programa. |
+| O programa não continua depois do login | Você precisa **abrir a página do Extrato Financeiro** (Meus Dados → Financeiro → Extrato Financeiro) e ver a lista de meses. O programa espera até 10 minutos; depois disso, rode de novo. |
+| `Tempo esgotado esperando o login/página do extrato` | Passaram-se 10 minutos sem o extrato abrir. Rode de novo e faça o login mais rápido. |
+| `Ano 20XX indisponível` | Você pediu um ano que não existe no site. A mensagem mostra quais existem. |
+| A pasta `extratos` ficou vazia | Rode de novo e leia as mensagens na janela preta. Se aparecer um erro, mande uma foto dele para quem te passou o programa. |
+| Os arquivos não mudaram mesmo rodando de novo | O programa pula o que já existe. Use `python main.py --refazer`. |
 
 ---
 
 ## Perguntas rápidas
 
-**Isso é seguro?** O programa só *lê* os extratos. Ele não altera nada na sua conta. O programa **não
-sabe nem guarda sua senha**: quem digita é você, direto no site.
+**Isso é seguro?** O programa só *lê* os extratos. Ele não altera nada na sua conta. Ele **não sabe
+nem guarda sua senha**: quem digita é você, direto no site.
 
 **Posso usar o computador enquanto roda?** Pode, mas **não feche nem mexa** na janela do navegador
 que ele abriu.
 
 **Onde ficam os arquivos?** Na pasta `extratos`, dentro da pasta do programa.
+
+**Por que o Excel mostra tudo numa coluna só?** Os arquivos usam **ponto e vírgula (`;`)** para separar as
+colunas, que é o padrão do Excel em português. Se abrir tudo junto, use *Dados → Texto para Colunas*
+e escolha o ponto e vírgula.
